@@ -1,9 +1,10 @@
-import NextAuth, { AuthOptions } from 'next-auth'
+import NextAuth, { AuthOptions, Session } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import connectDB from '@/lib/mongoose'
 import User from '@/models/User'
 import { JWT } from 'next-auth/jwt'
+import type { User as NextAuthUser } from 'next-auth'
 
 const config: AuthOptions = {
   providers: [
@@ -36,13 +37,13 @@ const config: AuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: any }) {
+    async jwt({ token, user }: { token: JWT; user?: NextAuthUser & { role: 'guru' | 'siswa' } }) {
       if (user) {
         token.role = user.role
       }
       return token
     },
-    async session({ session, token }: { session: any; token: JWT }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       if (token) {
         session.user.id = token.sub!
         session.user.role = token.role as 'guru' | 'siswa'
@@ -59,6 +60,7 @@ const config: AuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth(config)
+const { handlers, auth, signIn, signOut } = NextAuth(config)
 
+export { handlers, auth, signIn, signOut }
 export { config as authOptions }

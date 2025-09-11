@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import connectDB from '@/lib/mongoose'
 import QRCode from 'qrcode'
 import { v4 as uuidv4 } from 'uuid'
@@ -7,7 +7,7 @@ import { authOptions } from '../../auth/[...nextauth]/route'
 import QRSession from '@/models/QRSession'
 
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   const session = await getServerSession(authOptions)
 
   if (!session || session.user.role !== 'guru') {
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       token,
       expiresAt: expiresAt.toISOString()
     })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to generate QR' }, { status: 500 })
   }
 }
