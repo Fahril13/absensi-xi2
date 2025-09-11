@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongoose'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { authOptions } from '@/lib/auth'
 
 export async function GET() {
   await connectDB()
