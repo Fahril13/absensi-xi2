@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongoose'
 import QRCode from 'qrcode'
 import { v4 as uuidv4 } from 'uuid'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions } from '@/lib/auth-config'
 import QRSession from '@/models/QRSession'
 
 

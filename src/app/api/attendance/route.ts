@@ -3,7 +3,7 @@ import connectDB from '@/lib/mongoose'
 import Attendance from '@/models/Attendance'
 import User from '@/models/User'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { authOptions } from '@/lib/auth-config'
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
