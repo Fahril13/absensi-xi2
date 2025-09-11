@@ -44,10 +44,12 @@ export async function POST(request: NextRequest) {
 
     await user.save()
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user.toObject()
 
     return NextResponse.json(userWithoutPassword, { status: 201 })
   } catch (error) {
+    console.error(error)
     return NextResponse.json({ error: 'Failed to create user' }, { status: 500 })
   }
 }

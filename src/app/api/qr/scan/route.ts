@@ -4,7 +4,6 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]/route'
 import QRSession from '@/models/QRSession'
 import Attendance from '@/models/Attendance'
-import User from '@/models/User'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
