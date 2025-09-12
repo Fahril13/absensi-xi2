@@ -95,7 +95,7 @@ export default function QRScanPage() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
         <h1 className="text-2xl font-bold text-center mb-6">Scan QR Absensi</h1>
-        <div id="reader" style={{ display: scannerStarted ? "block" : "none", width: "100%", height: "300px" }} className="mb-4" />
+        <div id="reader" style={{ width: "100%", height: "300px" }} className="mb-4" />
         {scannerStarted ? (
           <button
             onClick={stopScanner}

@@ -30,6 +30,10 @@ export default function QRGeneratePage() {
       const data = await response.json();
       if (response.ok) {
         setQrSvg(data.qrCode);
+        // Optional: Show the absen URL for manual entry
+        if (data.absenUrl) {
+          console.log("Absen URL: " + data.absenUrl);
+        }
       } else {
         setError(data.error || "Gagal generate QR");
       }
