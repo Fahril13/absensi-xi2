@@ -80,7 +80,7 @@ export default function AttendancePage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lokasi</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -89,9 +89,13 @@ export default function AttendancePage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.class}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(att.timestamp).toLocaleString("id-ID")}
+                      {att.timestamp ? new Date(att.timestamp).toLocaleString("id-ID") : "-"}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.location || "Online"}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {att.status === 'hadir' ? 'Hadir' :
+                       att.status === 'izin' ? 'Izin' :
+                       att.status === 'sakit' ? 'Sakit' : 'Tidak Hadir'}
+                    </td>
                   </tr>
                 ))}
               </tbody>

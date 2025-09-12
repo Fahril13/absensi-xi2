@@ -39,14 +39,56 @@ export async function GET(request: NextRequest) {
       query.student = new mongoose.Types.ObjectId(session.user.id)
     }
   
-    const allAttendance = await Attendance.find(query)
+    // Get all students
+    const allStudents = await User.find({ role: 'siswa', class: 'XI-2' })
+
+    // Get attendance records for the specified date
+    const attendanceRecords = await Attendance.find(query)
       .populate('student', 'name email class')
       .sort({ timestamp: 1 })
 
-    let attendance = allAttendance
-  
+    // Create attendance map for quick lookup
+    const attendanceMap = new Map()
+    attendanceRecords.forEach(record => {
+      attendanceMap.set(record.student._id.toString(), record)
+    })
+
+    // Combine students with their attendance status
+    let attendance = allStudents.map(student => {
+      const record = attendanceMap.get(student._id.toString())
+      if (record) {
+        return {
+          _id: record._id,
+          student: {
+            _id: student._id,
+            name: student.name,
+            email: student.email,
+            class: student.class
+          },
+          date: record.date,
+          status: record.status,
+          timestamp: record.timestamp
+        }
+      } else {
+        // Student hasn't scanned QR yet - mark as absent
+        return {
+          _id: `absent-${student._id}`,
+          student: {
+            _id: student._id,
+            name: student.name,
+            email: student.email,
+            class: student.class
+          },
+          date: dateStr ? new Date(dateStr) : new Date(),
+          status: 'alfa',
+          timestamp: null
+        }
+      }
+    })
+
+    // Filter by status if specified
     if (status) {
-      attendance = allAttendance.filter(a => a.status === status)
+      attendance = attendance.filter(a => a.status === status)
     }
 
     // Calculate stats only for teachers and only if date is specified
