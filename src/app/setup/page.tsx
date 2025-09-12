@@ -3,9 +3,19 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+interface SetupResult {
+  message: string;
+  admin: {
+    name: string;
+    email: string;
+    password: string;
+  };
+  instructions: string[];
+}
+
 export default function SetupPage() {
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<SetupResult | null>(null);
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -29,7 +39,7 @@ export default function SetupPage() {
       } else {
         setError(data.error || 'Setup failed');
       }
-    } catch (err) {
+    } catch {
       setError('Network error occurred');
     } finally {
       setLoading(false);

@@ -212,7 +212,7 @@ export default function AdminPage() {
 
           {users.length === 0 && (
             <div className="text-center py-8 text-gray-500">
-              Belum ada user. Klik "Tambah User" untuk membuat user pertama.
+              Belum ada user. Klik 'Tambah User' untuk membuat user pertama.
             </div>
           )}
         </div>
