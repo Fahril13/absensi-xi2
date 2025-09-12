@@ -8,26 +8,35 @@ if (!MONGODB_URI) {
   );
 }
 
+let cached = (global as any).mongoose;
+
+if (!cached) {
+  cached = (global as any).mongoose = { conn: null, promise: null };
+}
+
 async function connectDB(): Promise<typeof mongoose> {
-  // During build time, return a mock connection to avoid actual DB connection
-  if (process.env.NODE_ENV === 'production' && typeof window === 'undefined') {
-    // This is a build-time check
-    return mongoose;
+  if (cached.conn) {
+    return cached.conn;
   }
 
-  if (mongoose.connection.readyState >= 1) {
-    return mongoose;
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false,
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
+      return mongoose;
+    });
   }
 
   try {
-    await mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-    });
-    return mongoose;
+    cached.conn = await cached.promise;
   } catch (e) {
-    console.error('MongoDB connection error:', e);
+    cached.promise = null;
     throw e;
   }
+
+  return cached.conn;
 }
 
 export default connectDB;
