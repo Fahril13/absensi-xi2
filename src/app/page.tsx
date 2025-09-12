@@ -15,13 +15,29 @@ export default function Home() {
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center p-8">
           <h1 className="text-4xl font-bold mb-4 text-gray-900">Absensi XI2</h1>
-          <p className="text-lg text-gray-600 mb-8">Silakan login untuk mengakses sistem absensi.</p>
-          <Link
-            href="/login"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition"
-          >
-            Login
-          </Link>
+          <p className="text-lg text-gray-600 mb-8">Sistem absensi berbasis QR untuk siswa dan guru.</p>
+
+          <div className="bg-yellow-50 p-4 rounded-lg mb-6 max-w-md">
+            <h3 className="font-medium text-yellow-900 mb-2">🎯 Setup Pertama Kali:</h3>
+            <p className="text-sm text-yellow-800 mb-3">
+              Jika ini pertama kali menggunakan sistem, buat akun admin terlebih dahulu.
+            </p>
+            <Link
+              href="/setup"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-2 px-4 rounded-lg transition text-sm"
+            >
+              Setup Admin User
+            </Link>
+          </div>
+
+          <div className="space-y-4">
+            <Link
+              href="/login"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition block"
+            >
+              Login
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -79,6 +95,19 @@ export default function Home() {
             View Attendance
           </Link>
         </div>
+
+        {session.user?.role === "guru" && (
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">Admin Panel</h2>
+            <p className="text-gray-600 mb-4">Kelola user siswa dan data sistem.</p>
+            <Link
+              href="/admin"
+              className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition"
+            >
+              Admin Panel
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );
