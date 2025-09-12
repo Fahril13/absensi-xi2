@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongoose'
-import { FilterQuery } from 'mongoose'
+import { IAttendance } from '@/models/Attendance'
 import Attendance from '@/models/Attendance'
 import User from '@/models/User'
 import { getServerSession } from 'next-auth'
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const dateStr = searchParams.get('date')
     const status = searchParams.get('status')
 
-    const query: any = {}
+    const query: Record<string, any> = {}
     if (dateStr) {
       const date = new Date(dateStr)
       date.setHours(0, 0, 0, 0)
