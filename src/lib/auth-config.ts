@@ -17,19 +17,24 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        await connectDB()
+        try {
+          await connectDB()
 
-        const user = await User.findOne({ email: credentials.email })
+          const user = await User.findOne({ email: credentials.email })
 
-        if (!user || !await bcrypt.compare(credentials.password, user.password)) {
+          if (!user || !await bcrypt.compare(credentials.password, user.password)) {
+            return null
+          }
+
+          return {
+            id: user._id.toString(),
+            email: user.email,
+            name: user.name,
+            role: user.role
+          }
+        } catch (error) {
+          console.error('Auth error:', error)
           return null
-        }
-
-        return {
-          id: user._id.toString(),
-          email: user.email,
-          name: user.name,
-          role: user.role
         }
       }
     })
