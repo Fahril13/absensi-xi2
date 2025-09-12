@@ -44,7 +44,7 @@ export default function QRScanPage() {
           handleScan(decodedText);
         },
         (error) => {
-          // Ignore scan errors
+          console.warn(`Scan error: ${error}`);
         }
       );
       setScannerStarted(true);
