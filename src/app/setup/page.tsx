@@ -62,11 +62,22 @@ export default function SetupPage() {
           <div className="space-y-6">
             <div className="bg-blue-50 p-4 rounded-lg">
               <h3 className="font-medium text-blue-900 mb-2">Yang akan dibuat:</h3>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Akun Admin: <strong>admin@xi2.sch.id</strong></li>
-                <li>• Password: <strong>admin123</strong></li>
-                <li>• Role: Guru (bisa buat akun siswa)</li>
-              </ul>
+              <div className="text-sm text-blue-800 space-y-2">
+                <div>
+                  <strong className="text-blue-900">👨‍🏫 Admin:</strong>
+                  <div className="ml-4">admin@xi2.sch.id / admin123</div>
+                </div>
+                <div>
+                  <strong className="text-blue-900">👨‍🎓 Siswa Test:</strong>
+                  <div className="ml-4 grid grid-cols-1 gap-1">
+                    <div>• Walid: walid@xi2.sch.id / test123</div>
+                    <div>• Ciki: ciki@xi2.sch.id / test123</div>
+                    <div>• Kevin: kevin@xi2.sch.id / test123</div>
+                    <div>• Mutia: mutia@xi2.sch.id / test123</div>
+                    <div>• Yasni: yasni@xi2.sch.id / test123</div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             <button
