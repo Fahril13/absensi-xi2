@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongoose'
+import { FilterQuery } from 'mongoose'
 import Attendance from '@/models/Attendance'
 import User from '@/models/User'
 import { getServerSession } from 'next-auth'
