@@ -1,24 +1,87 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Absensi XI-2 - Attendance System
+
+Sistem absensi berbasis QR Code untuk kelas XI-2 menggunakan Next.js, MongoDB, dan autentikasi NextAuth.
+
+## Fitur Utama
+
+- ✅ **Pemindaian QR Code** - Siswa dapat melakukan absensi dengan memindai QR code
+- ✅ **Dashboard Guru** - Melihat daftar absensi semua siswa
+- ✅ **Riwayat Absensi Siswa** - Siswa dapat melihat riwayat absensi mereka
+- ✅ **Status Absensi Real-time** - Hadir, Tidak Hadir, Izin, Sakit
+- ✅ **Reset Otomatis** - Absensi direset setiap hari pukul 6 pagi
+- ✅ **Sistem 30+ Siswa** - Mendukung banyak siswa dalam satu kelas
+
+## Sistem Kerja
+
+1. **Siswa yang scan QR** → Status: **Hadir**
+2. **Siswa yang tidak scan QR** → Status: **Tidak Hadir**
+3. **Setiap hari pukul 6 pagi** → Semua siswa direset ke **Tidak Hadir**
+4. **Dashboard menampilkan semua siswa** dengan status terkini
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies and run the development server:
 
 ```bash
+npm install
 npm run dev
 # or
-yarn dev
+yarn install && yarn dev
 # or
-pnpm dev
-# or
-bun dev
+pnpm install && pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Setup Database
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. Pastikan MongoDB sudah terinstall dan running
+2. Copy `.env.local.example` ke `.env.local` dan isi konfigurasi database
+3. Jalankan seeding untuk membuat data siswa awal:
+
+```bash
+npm run seed
+```
+
+## Reset Absensi Harian
+
+Untuk mereset absensi setiap hari pukul 6 pagi, setup cron job:
+
+### Linux/Mac:
+```bash
+# Edit crontab
+crontab -e
+
+# Tambahkan baris berikut (sesuaikan path)
+0 6 * * * cd /path/to/absensi-xi2 && npm run reset-attendance
+```
+
+### Windows (Task Scheduler):
+1. Buka Task Scheduler
+2. Create Basic Task
+3. Set trigger: Daily at 6:00 AM
+4. Set action: Start a program
+5. Program/script: `cmd.exe`
+6. Arguments: `/c cd /d "C:\path\to\absensi-xi2" && npm run reset-attendance`
+
+### Manual Reset:
+```bash
+npm run reset-attendance
+```
+
+## API Endpoints
+
+- `GET /api/attendance` - Mendapatkan daftar absensi
+- `POST /api/qr/scan` - Memproses pemindaian QR
+- `POST /api/attendance/reset` - Mereset semua absensi (untuk testing)
+
+## Tech Stack
+
+- **Frontend**: Next.js 15, React 19, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB dengan Mongoose
+- **Authentication**: NextAuth.js
+- **QR Code**: qrcode, @zxing/library
 
 ## Learn More
 
