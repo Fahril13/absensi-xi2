@@ -37,9 +37,13 @@ export async function POST() {
       margin: 2,
     })
 
+    const baseUrl = process.env.NODE_ENV === "production" ? "https://absensi-xi2-hss2.vercel.app" : "http://localhost:3000";
+    const absenUrl = `${baseUrl}/absen/${token}`;
+
     return NextResponse.json({
       qrCode: qrSvg,
       token,
+      absenUrl,
       expiresAt: expiresAt.toISOString()
     })
   } catch {
