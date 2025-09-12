@@ -14,11 +14,13 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { qrData: token, userId: email } = await request.json()
+    const { qrData: token } = await request.json()
 
-    if (!token || !email) {
-      return NextResponse.json({ error: 'Missing token or email' }, { status: 400 })
+    if (!token) {
+      return NextResponse.json({ error: 'Missing token' }, { status: 400 })
     }
+
+    const email = session.user.email
 
     await connectDB()
 

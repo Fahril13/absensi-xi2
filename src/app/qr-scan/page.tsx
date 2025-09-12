@@ -75,8 +75,9 @@ export default function QRScanPage() {
     try {
       const response = await fetch("/api/qr/scan", {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qrData: qrCode, userId: session.user.id }),
+        body: JSON.stringify({ qrData: qrCode }),
       });
       const data = await response.json();
       if (response.ok) {

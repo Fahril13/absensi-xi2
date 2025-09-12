@@ -28,10 +28,13 @@ export default function AbsenPage() {
 
       if (signInResult?.ok) {
         // If sign in successful, call the scan API
+        router.refresh(); // Refresh to update session
+
         const response = await fetch("/api/qr/scan", {
           method: "POST",
+          credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ qrData: token, userId: email }), // Use email as userId or adjust
+          body: JSON.stringify({ qrData: token }),
         });
         const data = await response.json();
         if (response.ok) {
