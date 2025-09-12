@@ -22,21 +22,20 @@ export async function GET(request: NextRequest) {
     const dateStr = searchParams.get('date')
     const status = searchParams.get('status')
 
-    if (!dateStr) {
-      return NextResponse.json({ error: 'Date is required' }, { status: 400 })
+    const query: any = {}
+    if (dateStr) {
+      const date = new Date(dateStr)
+      date.setHours(0, 0, 0, 0)
+      const nextDay = new Date(date)
+      nextDay.setDate(nextDay.getDate() + 1)
+      query.date = { $gte: date, $lt: nextDay }
     }
-
-    const date = new Date(dateStr)
-    date.setHours(0, 0, 0, 0)
-    const nextDay = new Date(date)
-    nextDay.setDate(nextDay.getDate() + 1)
-
-    const allAttendance = await Attendance.find({
-      date: {
-        $gte: date,
-        $lt: nextDay
-      }
-    })
+  
+    if (isStudent) {
+      query.student = session.user.id
+    }
+  
+    const allAttendance = await Attendance.find(query)
       .populate('student', 'name email class')
       .sort({ timestamp: 1 })
 
@@ -45,23 +44,20 @@ export async function GET(request: NextRequest) {
     if (status) {
       attendance = allAttendance.filter(a => a.status === status)
     }
-  
-    if (isStudent) {
-      // Students see only their own
-      attendance = attendance.filter(a => a.student._id.toString() === session.user.id)
-    }
 
-    // Calculate stats only for teachers
+    // Calculate stats only for teachers and only if date is specified
     let stats = {}
-    if (isTeacher) {
+    if (isTeacher && dateStr) {
       const totalStudents = await User.countDocuments({ role: 'siswa', class: 'XI-2' })
+      const dateQuery = query.date || { $gte: new Date(new Date().setHours(0,0,0,0)), $lt: new Date(new Date().setDate(new Date().getDate() + 1)) }
+      const dayAttendance = await Attendance.find({ date: dateQuery }).populate('student', 'name email class')
       stats = {
-        hadir: allAttendance.filter(a => a.status === 'hadir').length,
-        izin: allAttendance.filter(a => a.status === 'izin').length,
-        sakit: allAttendance.filter(a => a.status === 'sakit').length,
-        alfa: totalStudents - allAttendance.length,
+        hadir: dayAttendance.filter(a => a.status === 'hadir').length,
+        izin: dayAttendance.filter(a => a.status === 'izin').length,
+        sakit: dayAttendance.filter(a => a.status === 'sakit').length,
+        alfa: totalStudents - dayAttendance.length,
         total: totalStudents,
-        attendanceRate: ((allAttendance.length / totalStudents) * 100).toFixed(2)
+        attendanceRate: ((dayAttendance.length / totalStudents) * 100).toFixed(2)
       }
     }
 
