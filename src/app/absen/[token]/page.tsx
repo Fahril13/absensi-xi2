@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 export default function AbsenPage() {
   const params = useParams();
+  const router = useRouter();
   const token = params?.token as string;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,6 +36,10 @@ export default function AbsenPage() {
         const data = await response.json();
         if (response.ok) {
           setMessage(data.message || "Absensi berhasil!");
+          // Redirect to attendance page after success
+          setTimeout(() => {
+            router.push('/attendance');
+          }, 2000); // Delay to show message
         } else {
           setError(data.error || "Absensi gagal");
         }

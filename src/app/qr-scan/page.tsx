@@ -35,12 +35,18 @@ export default function QRScanPage() {
     const html5QrCode = new Html5Qrcode("reader");
     qrReaderRef.current = html5QrCode;
 
-    const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+    const config = {
+      fps: 10,
+      qrbox: { width: 300, height: 300 },
+      aspectRatio: 1.0,
+      disableFlip: false
+    };
     try {
       await html5QrCode.start(
         { facingMode: "environment" },
         config,
         (decodedText) => {
+          console.log("QR decoded:", decodedText); // For debugging
           handleScan(decodedText);
         },
         (error) => {
@@ -75,6 +81,10 @@ export default function QRScanPage() {
       const data = await response.json();
       if (response.ok) {
         setMessage(data.message || "Absensi berhasil!");
+        // Redirect to attendance page after success
+        setTimeout(() => {
+          router.push('/attendance');
+        }, 2000); // Delay to show message
       } else {
         setError(data.error || "Absensi gagal");
       }
