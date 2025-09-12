@@ -18,6 +18,8 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
+  const [deleteUserName, setDeleteUserName] = useState<string>('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -80,6 +82,37 @@ export default function AdminPage() {
       console.error('Error creating user:', error);
       alert('Terjadi kesalahan saat membuat user');
     }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        fetchUsers(); // Refresh list
+        alert('User berhasil dihapus!');
+        setDeleteUserId(null);
+        setDeleteUserName('');
+      } else {
+        const error = await response.json();
+        alert(`Error: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Terjadi kesalahan saat menghapus user');
+    }
+  };
+
+  const confirmDelete = (userId: string, userName: string) => {
+    setDeleteUserId(userId);
+    setDeleteUserName(userName);
+  };
+
+  const cancelDelete = () => {
+    setDeleteUserId(null);
+    setDeleteUserName('');
   };
 
   if (status === "loading" || loading) {
@@ -179,6 +212,36 @@ export default function AdminPage() {
             </form>
           )}
 
+          {/* Delete Confirmation Dialog */}
+          {deleteUserId && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-md w-full mx-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Konfirmasi Hapus User</h3>
+                <p className="text-gray-700 mb-6">
+                  Apakah Anda yakin ingin menghapus user <strong>{deleteUserName}</strong>?
+                  <br />
+                  <span className="text-red-600 text-sm">
+                    ⚠️ Semua data absensi user ini juga akan dihapus dan tidak dapat dikembalikan.
+                  </span>
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={cancelDelete}
+                    className="bg-gray-600 hover:bg-gray-700 text-white font-medium py-2 px-4 rounded-lg transition"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => handleDeleteUser(deleteUserId)}
+                    className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition"
+                  >
+                    Hapus User
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="overflow-x-auto">
             <table className="w-full table-auto">
               <thead>
@@ -187,6 +250,7 @@ export default function AdminPage() {
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Email</th>
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Role</th>
                   <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Kelas</th>
+                  <th className="px-4 py-2 text-left text-sm font-medium text-gray-700">Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -204,6 +268,19 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td className="px-4 py-2 text-sm text-gray-900">{user.class}</td>
+                    <td className="px-4 py-2 text-sm">
+                      {session?.user?.id !== user._id && (
+                        <button
+                          onClick={() => confirmDelete(user._id, user.name)}
+                          className="bg-red-600 hover:bg-red-700 text-white text-xs font-medium py-1 px-2 rounded transition"
+                        >
+                          🗑️ Hapus
+                        </button>
+                      )}
+                      {session?.user?.id === user._id && (
+                        <span className="text-gray-400 text-xs">Akun Anda</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
