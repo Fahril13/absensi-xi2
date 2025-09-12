@@ -30,7 +30,7 @@ export default function QRGeneratePage() {
       });
       const data = await response.json();
       if (response.ok) {
-        setQrData(data.qrUrl);
+        setQrData(data.qrCode);
       } else {
         setError(data.error || "Gagal generate QR");
       }
