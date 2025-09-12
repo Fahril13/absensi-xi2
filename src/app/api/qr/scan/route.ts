@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
 import QRSession from '@/models/QRSession'
 import Attendance from '@/models/Attendance'
+import User from '@/models/User'
 
 export async function POST(request: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -13,33 +14,37 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { qrData } = await request.json()
+    const { qrData: token, userId: email } = await request.json()
 
-    if (!qrData) {
-      return NextResponse.json({ error: 'No QR data provided' }, { status: 400 })
+    if (!token || !email) {
+      return NextResponse.json({ error: 'Missing token or email' }, { status: 400 })
     }
 
-    const { token, date, expires } = JSON.parse(qrData)
-
     await connectDB()
+
+    const user = await User.findOne({ email })
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 })
+    }
+    const studentId = user._id
 
     const qrSession = await QRSession.findOne({ token })
 
     if (!qrSession || !qrSession.isActive) {
-      return NextResponse.json({ error: 'Invalid or expired QR code' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid QR code' }, { status: 400 })
     }
 
-    if (new Date(expires) < new Date()) {
+    if (qrSession.expiresAt < new Date()) {
       qrSession.isActive = false
       await qrSession.save()
       return NextResponse.json({ error: 'QR code expired' }, { status: 400 })
     }
 
-    if (qrSession.date !== date || date !== new Date().toISOString().split('T')[0]) {
+    const today = new Date().toISOString().split('T')[0]
+    if (qrSession.date !== today) {
       return NextResponse.json({ error: 'QR code not for today' }, { status: 400 })
     }
 
-    const studentId = session.user.id
 
     if (qrSession.usedBy.includes(studentId)) {
       return NextResponse.json({ error: 'Already attended today' }, { status: 400 })
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Mark attendance
     const existingAttendance = await Attendance.findOne({
       student: studentId,
-      date: new Date(date)
+      date: new Date(today)
     })
 
     if (existingAttendance) {
@@ -57,7 +62,7 @@ export async function POST(request: NextRequest) {
 
     const attendance = new Attendance({
       student: studentId,
-      date: new Date(date),
+      date: new Date(today),
       status: 'hadir',
       timestamp: new Date()
     })
