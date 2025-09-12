@@ -2,12 +2,11 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import QRCode from "react-qr-code";
 
 export default function QRGeneratePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [qrData, setQrData] = useState("");
+  const [qrSvg, setQrSvg] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -30,7 +29,7 @@ export default function QRGeneratePage() {
       });
       const data = await response.json();
       if (response.ok) {
-        setQrData(data.qrCode);
+        setQrSvg(data.qrCode);
       } else {
         setError(data.error || "Gagal generate QR");
       }
@@ -56,11 +55,11 @@ export default function QRGeneratePage() {
           {loading ? "Generating..." : "Generate QR Code"}
         </button>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        {qrData && (
+        {qrSvg && (
           <div className="text-center">
-            <QRCode value={qrData} size={256} />
-            <p className="mt-4 text-sm text-gray-600">Scan QR ini untuk absensi</p>
-            <p className="text-xs text-gray-500">QR valid 5 menit</p>
+            <div dangerouslySetInnerHTML={{ __html: qrSvg }} className="mx-auto mb-4" />
+            <p className="text-sm text-gray-600">Scan QR ini untuk absensi</p>
+            <p className="text-xs text-gray-500">QR valid 15 menit</p>
           </div>
         )}
       </div>

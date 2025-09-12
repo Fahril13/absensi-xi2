@@ -31,13 +31,7 @@ export async function POST() {
 
     await qrSession.save()
 
-    const qrData = JSON.stringify({
-      token,
-      date: today,
-      expires: expiresAt.toISOString()
-    })
-
-    const qrSvg = await QRCode.toString(qrData, {
+    const qrSvg = await QRCode.toString(token, {
       type: 'svg',
       width: 200,
       margin: 2,
