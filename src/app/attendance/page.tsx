@@ -25,7 +25,9 @@ export default function AttendancePage() {
   const fetchAttendances = useCallback(async () => {
     if (!session) return;
     try {
-      const response = await fetch("/api/attendance");
+      const response = await fetch("/api/attendance", {
+        credentials: "include"
+      });
       if (response.ok) {
         const data = await response.json();
         // Filter based on role: admin sees all, student sees own

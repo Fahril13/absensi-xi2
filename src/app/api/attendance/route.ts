@@ -8,9 +8,12 @@ import { authOptions } from '@/lib/auth-config'
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions)
 
-  if (!session || session.user.role !== 'guru') {
+  if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
+
+  const isTeacher = session.user.role === 'guru'
+  const isStudent = session.user.role === 'siswa'
 
   try {
     await connectDB()
@@ -34,24 +37,32 @@ export async function GET(request: NextRequest) {
         $lt: nextDay
       }
     })
-      .populate('student', 'name email')
+      .populate('student', 'name email class')
       .sort({ timestamp: 1 })
 
     let attendance = allAttendance
-
+  
     if (status) {
       attendance = allAttendance.filter(a => a.status === status)
     }
+  
+    if (isStudent) {
+      // Students see only their own
+      attendance = attendance.filter(a => a.student._id.toString() === session.user.id)
+    }
 
-    // Calculate stats on all attendance for the day
-    const totalStudents = await User.countDocuments({ role: 'siswa', class: 'XI-2' })
-    const stats = {
-      hadir: allAttendance.filter(a => a.status === 'hadir').length,
-      izin: allAttendance.filter(a => a.status === 'izin').length,
-      sakit: allAttendance.filter(a => a.status === 'sakit').length,
-      alfa: totalStudents - allAttendance.length,
-      total: totalStudents,
-      attendanceRate: ((allAttendance.length / totalStudents) * 100).toFixed(2)
+    // Calculate stats only for teachers
+    let stats = {}
+    if (isTeacher) {
+      const totalStudents = await User.countDocuments({ role: 'siswa', class: 'XI-2' })
+      stats = {
+        hadir: allAttendance.filter(a => a.status === 'hadir').length,
+        izin: allAttendance.filter(a => a.status === 'izin').length,
+        sakit: allAttendance.filter(a => a.status === 'sakit').length,
+        alfa: totalStudents - allAttendance.length,
+        total: totalStudents,
+        attendanceRate: ((allAttendance.length / totalStudents) * 100).toFixed(2)
+      }
     }
 
     return NextResponse.json({
