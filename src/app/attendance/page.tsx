@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -22,16 +22,7 @@ export default function AttendancePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session) {
-      router.push("/login");
-      return;
-    }
-    fetchAttendances();
-  }, [session, status, router]);
-
-  const fetchAttendances = async () => {
+  const fetchAttendances = useCallback(async () => {
     if (!session) return;
     try {
       const response = await fetch("/api/attendance");
@@ -47,12 +38,21 @@ export default function AttendancePage() {
       } else {
         setError("Failed to fetch attendance");
       }
-    } catch (err) {
+    } catch (e) {
       setError("Network error");
     } finally {
       setLoading(false);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if (status === "loading") return;
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+    fetchAttendances();
+  }, [session, status, router, fetchAttendances]);
 
   if (status === "loading") return <p>Loading...</p>;
   if (!session) return <p>Redirecting...</p>;

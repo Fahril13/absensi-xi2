@@ -1,11 +1,11 @@
 "use client";
-import { use, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-export default function AbsenPage({ params }: { params: { token: string } }) {
-  const searchParams = useSearchParams();
-  const token = params.token;
+export default function AbsenPage() {
+  const params = useParams();
+  const token = params?.token as string;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

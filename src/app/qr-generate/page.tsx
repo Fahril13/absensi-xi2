@@ -37,7 +37,7 @@ export default function QRGeneratePage() {
       } else {
         setError(data.error || "Gagal generate QR");
       }
-    } catch (err) {
+    } catch (_) {
       setError("Network error");
     } finally {
       setLoading(false);

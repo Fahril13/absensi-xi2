@@ -78,7 +78,7 @@ export default function QRScanPage() {
       } else {
         setError(data.error || "Absensi gagal");
       }
-    } catch (err) {
+    } catch (_) {
       setError("Network error");
     } finally {
       setLoading(false);
