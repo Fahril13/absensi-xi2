@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongoose'
+import mongoose from 'mongoose'
 import { FilterQuery } from 'mongoose'
 import { IAttendance } from '@/models/Attendance'
 import Attendance from '@/models/Attendance'
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
   
     if (isStudent) {
-      query.student = session.user.id
+      query.student = new mongoose.Types.ObjectId(session.user.id)
     }
   
     const allAttendance = await Attendance.find(query)

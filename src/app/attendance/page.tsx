@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 
 interface AttendanceRecord {
   _id: string;
-  user: {
+  student: {
     name: string;
     email: string;
     class: string;
   };
-  sessionId: string;
+  date: string;
+  status: string;
   timestamp: string;
   location?: string;
 }
@@ -30,17 +31,18 @@ export default function AttendancePage() {
       });
       if (response.ok) {
         const data = await response.json();
+        const attendanceData = data.attendance;
         // Filter based on role: admin sees all, student sees own
         if (session.user.role === "siswa") {
-          const userAttendances = data.filter((att: AttendanceRecord) => att.user.email === session.user.email);
+          const userAttendances = attendanceData.filter((att: AttendanceRecord) => att.student.email === session.user.email);
           setAttendances(userAttendances);
         } else {
-          setAttendances(data);
+          setAttendances(attendanceData);
         }
       } else {
         setError("Failed to fetch attendance");
       }
-    } catch (e) {
+    } catch {
       setError("Network error");
     } finally {
       setLoading(false);
@@ -84,8 +86,8 @@ export default function AttendancePage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {attendances.map((att) => (
                   <tr key={att._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.user.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.user.class}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.class}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {new Date(att.timestamp).toLocaleString("id-ID")}
                     </td>
