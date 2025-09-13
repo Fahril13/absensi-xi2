@@ -48,6 +48,13 @@ export default function Home() {
       <header className="bg-white shadow-sm p-4 rounded-lg mb-8">
         <div className="flex flex-col md:flex-row justify-between items-center">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-0">Dashboard Absensi</h1>
+          <div className="flex justify-center mb-4 md:mb-0">
+            <img
+              src="/foto-kelas.jpg"
+              alt="Foto Kelas XI2"
+              className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-md"
+            />
+          </div>
           <div className="flex items-center gap-4">
             <span className="text-gray-700">Selamat datang, {session.user?.name} ({session.user?.role})</span>
             <button
