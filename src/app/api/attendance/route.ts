@@ -112,9 +112,99 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Calculate attendance trends for the last 7 days (only for teachers)
+    let trends = {}
+    if (isTeacher) {
+      const trendsData = []
+      const totalStudents = await User.countDocuments({ role: 'siswa', class: 'XI-2' })
+
+      // Get data for last 7 days
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        date.setHours(0, 0, 0, 0)
+
+        const nextDay = new Date(date)
+        nextDay.setDate(nextDay.getDate() + 1)
+
+        const dayAttendance = await Attendance.find({
+          date: { $gte: date, $lt: nextDay },
+          status: 'hadir'
+        }).countDocuments()
+
+        trendsData.push({
+          date: date.toISOString().split('T')[0],
+          dayName: date.toLocaleDateString('id-ID', { weekday: 'short' }),
+          present: dayAttendance,
+          absent: totalStudents - dayAttendance,
+          percentage: totalStudents > 0 ? ((dayAttendance / totalStudents) * 100).toFixed(1) : '0.0'
+        })
+      }
+
+      // Calculate weekly average
+      const weeklyTotal = trendsData.reduce((sum, day) => sum + parseFloat(day.percentage), 0)
+      const weeklyAverage = (weeklyTotal / 7).toFixed(1)
+
+      // Get top/bottom performers (last 30 days)
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+
+      const studentStats = await Attendance.aggregate([
+        {
+          $match: {
+            date: { $gte: thirtyDaysAgo },
+            status: 'hadir'
+          }
+        },
+        {
+          $group: {
+            _id: '$student',
+            attendanceCount: { $sum: 1 }
+          }
+        },
+        {
+          $lookup: {
+            from: 'users',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'student'
+          }
+        },
+        {
+          $unwind: '$student'
+        },
+        {
+          $project: {
+            name: '$student.name',
+            attendanceCount: 1,
+            percentage: {
+              $multiply: [
+                { $divide: ['$attendanceCount', 30] },
+                100
+              ]
+            }
+          }
+        },
+        {
+          $sort: { attendanceCount: -1 }
+        }
+      ])
+
+      const topPerformers = studentStats.slice(0, 3)
+      const bottomPerformers = studentStats.slice(-3).reverse()
+
+      trends = {
+        last7Days: trendsData,
+        weeklyAverage: weeklyAverage,
+        topPerformers,
+        bottomPerformers
+      }
+    }
+
     return NextResponse.json({
       attendance,
       stats,
+      trends,
       date: dateStr
     })
   } catch (error) {

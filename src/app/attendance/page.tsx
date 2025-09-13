@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Loading from "@/components/Loading";
 import StatusBadge from "@/components/StatusBadge";
 import StatsCard from "@/components/StatsCard";
+import TrendsChart from "@/components/TrendsChart";
 import toast from "react-hot-toast";
 
 interface AttendanceRecord {
@@ -32,6 +33,7 @@ export default function AttendancePage() {
     alfa: number;
     attendanceRate: string;
   } | null>(null);
+  const [trends, setTrends] = useState<any>(null);
 
   const fetchAttendances = useCallback(async () => {
     if (!session) return;
@@ -49,6 +51,7 @@ export default function AttendancePage() {
         } else {
           setAttendances(attendanceData);
           setStats(data.stats); // Set stats for teachers
+          setTrends(data.trends); // Set trends for teachers
         }
 
         // Show success notification
@@ -151,6 +154,11 @@ export default function AttendancePage() {
                 </tbody>
               </table>
             </div>
+          )}
+
+          {/* Attendance Trends - Only for teachers */}
+          {session.user.role === "guru" && trends && (
+            <TrendsChart trends={trends} />
           )}
         </div>
       </div>
