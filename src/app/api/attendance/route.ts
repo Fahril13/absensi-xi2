@@ -88,19 +88,27 @@ export async function GET(request: NextRequest) {
       attendance = attendance.filter(a => a.status === status)
     }
 
-    // Calculate stats only for teachers and only if date is specified
+    // Calculate stats for teachers (use today's date if no date specified)
     let stats = {}
-    if (isTeacher && dateStr) {
+    if (isTeacher) {
       const totalStudents = await User.countDocuments({ role: 'siswa', class: 'XI-2' })
-      const dateQuery = query.date || { $gte: new Date(new Date().setHours(0,0,0,0)), $lt: new Date(new Date().setDate(new Date().getDate() + 1)) }
+
+      // Use provided date or default to today
+      const targetDate = dateStr ? new Date(dateStr) : new Date()
+      targetDate.setHours(0, 0, 0, 0)
+      const nextDay = new Date(targetDate)
+      nextDay.setDate(nextDay.getDate() + 1)
+
+      const dateQuery = { $gte: targetDate, $lt: nextDay }
       const dayAttendance = await Attendance.find({ date: dateQuery }).populate('student', 'name email class')
+
       stats = {
         hadir: dayAttendance.filter(a => a.status === 'hadir').length,
         izin: dayAttendance.filter(a => a.status === 'izin').length,
         sakit: dayAttendance.filter(a => a.status === 'sakit').length,
-        alfa: totalStudents - dayAttendance.length,
+        alfa: Math.max(0, totalStudents - dayAttendance.length), // Ensure not negative
         total: totalStudents,
-        attendanceRate: ((dayAttendance.length / totalStudents) * 100).toFixed(2)
+        attendanceRate: totalStudents > 0 ? ((dayAttendance.length / totalStudents) * 100).toFixed(2) : '0.00'
       }
     }
 
