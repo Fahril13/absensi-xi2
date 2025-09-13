@@ -2,6 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -49,9 +50,11 @@ export default function Home() {
         <div className="flex flex-col md:flex-row justify-between items-center">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 md:mb-0">Dashboard Absensi</h1>
           <div className="flex justify-center mb-4 md:mb-0">
-            <img
+            <Image
               src="/foto-kelas.jpg"
               alt="Foto Kelas XI2"
+              width={192}
+              height={192}
               className="w-32 h-32 md:w-48 md:h-48 rounded-full object-cover shadow-md"
             />
           </div>

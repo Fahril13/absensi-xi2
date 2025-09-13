@@ -21,6 +21,27 @@ interface AttendanceRecord {
   location?: string;
 }
 
+interface TrendsData {
+  last7Days: Array<{
+    date: string;
+    dayName: string;
+    present: number;
+    absent: number;
+    percentage: string;
+  }>;
+  weeklyAverage: string;
+  topPerformers: Array<{
+    name: string;
+    attendanceCount: number;
+    percentage: number;
+  }>;
+  bottomPerformers: Array<{
+    name: string;
+    attendanceCount: number;
+    percentage: number;
+  }>;
+}
+
 export default function AttendancePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -33,7 +54,7 @@ export default function AttendancePage() {
     alfa: number;
     attendanceRate: string;
   } | null>(null);
-  const [trends, setTrends] = useState<any>(null);
+  const [trends, setTrends] = useState<TrendsData | null>(null);
 
   const fetchAttendances = useCallback(async () => {
     if (!session) return;
