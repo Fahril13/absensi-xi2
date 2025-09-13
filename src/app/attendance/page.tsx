@@ -26,7 +26,12 @@ export default function AttendancePage() {
   const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<{
+    total: number;
+    hadir: number;
+    alfa: number;
+    attendanceRate: string;
+  } | null>(null);
 
   const fetchAttendances = useCallback(async () => {
     if (!session) return;
@@ -59,7 +64,7 @@ export default function AttendancePage() {
     } finally {
       setLoading(false);
     }
-  }, [session]);
+  }, [session, loading]);
 
   useEffect(() => {
     if (status === "loading") return;

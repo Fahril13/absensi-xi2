@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import connectDB from '@/lib/mongoose'
 import Attendance from '@/models/Attendance'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     await connectDB()
 

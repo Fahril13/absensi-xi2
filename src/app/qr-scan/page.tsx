@@ -93,7 +93,7 @@ export default function QRScanPage() {
         toast.error(`❌ ${data.error || "Absensi gagal"}`);
         setError(data.error || "Absensi gagal");
       }
-    } catch (_) {
+    } catch {
       setError("Network error");
     } finally {
       setLoading(false);
