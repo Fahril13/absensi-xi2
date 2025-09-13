@@ -100,15 +100,36 @@ export async function GET(request: NextRequest) {
       nextDay.setDate(nextDay.getDate() + 1)
 
       const dateQuery = { $gte: targetDate, $lt: nextDay }
-      const dayAttendance = await Attendance.find({ date: dateQuery }).populate('student', 'name email class')
+
+      // Get unique attendance records (one per student per day)
+      const dayAttendance = await Attendance.aggregate([
+        {
+          $match: {
+            date: dateQuery,
+            status: { $in: ['hadir', 'izin', 'sakit'] }
+          }
+        },
+        {
+          $group: {
+            _id: '$student',
+            status: { $first: '$status' },
+            count: { $sum: 1 }
+          }
+        }
+      ])
+
+      const hadirCount = dayAttendance.filter(a => a.status === 'hadir').length
+      const izinCount = dayAttendance.filter(a => a.status === 'izin').length
+      const sakitCount = dayAttendance.filter(a => a.status === 'sakit').length
+      const presentCount = hadirCount + izinCount + sakitCount
 
       stats = {
-        hadir: dayAttendance.filter(a => a.status === 'hadir').length,
-        izin: dayAttendance.filter(a => a.status === 'izin').length,
-        sakit: dayAttendance.filter(a => a.status === 'sakit').length,
-        alfa: Math.max(0, totalStudents - dayAttendance.length), // Ensure not negative
+        hadir: hadirCount,
+        izin: izinCount,
+        sakit: sakitCount,
+        alfa: Math.max(0, totalStudents - presentCount),
         total: totalStudents,
-        attendanceRate: totalStudents > 0 ? ((dayAttendance.length / totalStudents) * 100).toFixed(2) : '0.00'
+        attendanceRate: totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(2) : '0.00'
       }
     }
 
@@ -127,17 +148,32 @@ export async function GET(request: NextRequest) {
         const nextDay = new Date(date)
         nextDay.setDate(nextDay.getDate() + 1)
 
-        const dayAttendance = await Attendance.find({
-          date: { $gte: date, $lt: nextDay },
-          status: 'hadir'
-        }).countDocuments()
+        // Count unique students who attended that day
+        const dayAttendance = await Attendance.aggregate([
+          {
+            $match: {
+              date: { $gte: date, $lt: nextDay },
+              status: 'hadir'
+            }
+          },
+          {
+            $group: {
+              _id: '$student'
+            }
+          },
+          {
+            $count: 'uniqueStudents'
+          }
+        ])
+
+        const presentCount = dayAttendance.length > 0 ? dayAttendance[0].uniqueStudents : 0
 
         trendsData.push({
           date: date.toISOString().split('T')[0],
           dayName: date.toLocaleDateString('id-ID', { weekday: 'short' }),
-          present: dayAttendance,
-          absent: totalStudents - dayAttendance,
-          percentage: totalStudents > 0 ? ((dayAttendance / totalStudents) * 100).toFixed(1) : '0.0'
+          present: presentCount,
+          absent: totalStudents - presentCount,
+          percentage: totalStudents > 0 ? ((presentCount / totalStudents) * 100).toFixed(1) : '0.0'
         })
       }
 
@@ -149,6 +185,7 @@ export async function GET(request: NextRequest) {
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
+      // Get unique attendance days per student to avoid counting duplicates
       const studentStats = await Attendance.aggregate([
         {
           $match: {
@@ -158,7 +195,20 @@ export async function GET(request: NextRequest) {
         },
         {
           $group: {
-            _id: '$student',
+            _id: {
+              student: '$student',
+              date: {
+                $dateToString: {
+                  format: '%Y-%m-%d',
+                  date: '$date'
+                }
+              }
+            }
+          }
+        },
+        {
+          $group: {
+            _id: '$_id.student',
             attendanceCount: { $sum: 1 }
           }
         },

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import mongoose from 'mongoose'
 import connectDB from '@/lib/mongoose'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth-config'
@@ -52,28 +53,51 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Already attended today' }, { status: 400 })
     }
 
-    // Mark attendance
-    const existingAttendance = await Attendance.findOne({
-      student: studentId,
-      date: new Date(today)
-    })
+    // Use MongoDB transaction for atomic operation
+    const dbSession = await mongoose.startSession()
+    dbSession.startTransaction()
 
-    if (existingAttendance) {
-      return NextResponse.json({ error: 'Already marked attendance today' }, { status: 400 })
+    try {
+      // Check for existing attendance within transaction
+      const existingAttendance = await Attendance.findOne({
+        student: studentId,
+        date: new Date(today)
+      }).session(dbSession)
+
+      if (existingAttendance) {
+        await dbSession.abortTransaction()
+        return NextResponse.json({ error: 'Already marked attendance today' }, { status: 400 })
+      }
+
+      // Check if student already used this QR session
+      if (qrSession.usedBy.includes(studentId)) {
+        await dbSession.abortTransaction()
+        return NextResponse.json({ error: 'Already attended today' }, { status: 400 })
+      }
+
+      // Create attendance record
+      const attendance = new Attendance({
+        student: studentId,
+        date: new Date(today),
+        status: 'hadir',
+        timestamp: new Date()
+      })
+
+      await attendance.save({ session: dbSession })
+
+      // Update QR session
+      qrSession.usedBy.push(studentId)
+      await qrSession.save({ session: dbSession })
+
+      // Commit transaction
+      await dbSession.commitTransaction()
+
+    } catch (error) {
+      await dbSession.abortTransaction()
+      throw error
+    } finally {
+      dbSession.endSession()
     }
-
-    const attendance = new Attendance({
-      student: studentId,
-      date: new Date(today),
-      status: 'hadir',
-      timestamp: new Date()
-    })
-
-    await attendance.save()
-
-    // Update QR session
-    qrSession.usedBy.push(studentId)
-    await qrSession.save()
 
     return NextResponse.json({ success: true, message: 'Attendance marked successfully' })
   } catch (error) {
