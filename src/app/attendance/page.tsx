@@ -2,6 +2,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Loading from "@/components/Loading";
+import StatusBadge from "@/components/StatusBadge";
+import StatsCard from "@/components/StatsCard";
+import toast from "react-hot-toast";
 
 interface AttendanceRecord {
   _id: string;
@@ -22,6 +26,7 @@ export default function AttendancePage() {
   const [attendances, setAttendances] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState<any>(null);
 
   const fetchAttendances = useCallback(async () => {
     if (!session) return;
@@ -38,9 +43,16 @@ export default function AttendancePage() {
           setAttendances(userAttendances);
         } else {
           setAttendances(attendanceData);
+          setStats(data.stats); // Set stats for teachers
+        }
+
+        // Show success notification
+        if (!loading) {
+          toast.success("Data absensi berhasil dimuat! 📊");
         }
       } else {
         setError("Failed to fetch attendance");
+        toast.error("Gagal memuat data absensi ❌");
       }
     } catch {
       setError("Network error");
@@ -63,45 +75,79 @@ export default function AttendancePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-6">
-        <h1 className="text-2xl font-bold text-center mb-6">
-          {session.user.role === "guru" ? "Daftar Absensi" : "Riwayat Absensi Saya"}
-        </h1>
-        {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        {loading ? (
-          <p className="text-center">Loading attendance...</p>
-        ) : attendances.length === 0 ? (
-          <p className="text-center text-gray-500">No attendance records found.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {attendances.map((att) => (
-                  <tr key={att._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.class}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {att.timestamp ? new Date(att.timestamp).toLocaleString("id-ID") : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {att.status === 'hadir' ? 'Hadir' :
-                       att.status === 'izin' ? 'Izin' :
-                       att.status === 'sakit' ? 'Sakit' : 'Tidak Hadir'}
-                    </td>
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h1 className="text-2xl font-bold text-center mb-6">
+            {session.user.role === "guru" ? "Daftar Absensi XI-2" : "Riwayat Absensi Saya"}
+          </h1>
+
+          {/* Statistics Cards - Only for teachers */}
+          {session.user.role === "guru" && stats && (
+            <div className="stats-grid grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              <StatsCard
+                title="Total Siswa"
+                value={stats.total || 0}
+                icon="👥"
+                color="border-blue-500"
+              />
+              <StatsCard
+                title="Hadir"
+                value={stats.hadir || 0}
+                icon="✅"
+                color="border-green-500"
+              />
+              <StatsCard
+                title="Tidak Hadir"
+                value={stats.alfa || 0}
+                icon="❌"
+                color="border-red-500"
+              />
+              <StatsCard
+                title="Kehadiran"
+                value={`${stats.attendanceRate || 0}%`}
+                icon="📊"
+                color="border-purple-500"
+              />
+            </div>
+          )}
+
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+
+          {loading ? (
+            <div className="flex justify-center items-center py-8">
+              <Loading />
+            </div>
+          ) : attendances.length === 0 ? (
+            <p className="text-center text-gray-500">No attendance records found.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="attendance-table min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelas</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu</th>
+                    <th className="px-4 md:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {attendances.map((att) => (
+                    <tr key={att._id}>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.name}</td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900">{att.student.class}</td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {att.timestamp ? new Date(att.timestamp).toLocaleString("id-ID") : "-"}
+                      </td>
+                      <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                        <StatusBadge status={att.status} className="status-badge" />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -2,13 +2,15 @@
   "name": "absensi-xi2",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "seed": "node scripts/seed-users.js",
-    "reset-attendance": "node scripts/reset-attendance.js"
+    "reset-attendance": "tsx scripts/reset-attendance.ts",
+    "scheduler": "tsx scripts/scheduler.ts"
   },
   "dependencies": {
     "@zxing/library": "^0.21.3",
@@ -22,9 +24,11 @@
     "mongoose": "^7.6.0",
     "next": "15.5.3",
     "next-auth": "^4.24.11",
+    "node-cron": "^4.2.1",
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-hot-toast": "^2.6.0",
     "react-qr-code": "^2.0.18",
     "recharts": "^3.2.0",
     "uuid": "^13.0.0",
@@ -42,6 +46,8 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.5",
     "typescript": "^5"
   }
 }

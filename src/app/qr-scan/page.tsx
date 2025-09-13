@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Html5Qrcode } from "html5-qrcode";
+import toast from "react-hot-toast";
 
 export default function QRScanPage() {
   const { data: session, status } = useSession();
@@ -81,12 +82,15 @@ export default function QRScanPage() {
       });
       const data = await response.json();
       if (response.ok) {
-        setMessage(data.message || "Absensi berhasil!");
+        toast.success(`✅ ${data.message || "Absensi berhasil!"} Selamat datang, ${session.user.name}!`, {
+          duration: 4000,
+        });
         // Redirect to attendance page after success
         setTimeout(() => {
           router.push('/attendance');
         }, 2000); // Delay to show message
       } else {
+        toast.error(`❌ ${data.error || "Absensi gagal"}`);
         setError(data.error || "Absensi gagal");
       }
     } catch (_) {
