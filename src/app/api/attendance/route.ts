@@ -190,63 +190,83 @@ export async function GET(request: NextRequest) {
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
 
-      // Get unique attendance days per student to avoid counting duplicates
-      const studentStats = await Attendance.aggregate([
+      // Get all students and their unique attendance days in last 30 days
+      const studentStats = await User.aggregate([
         {
           $match: {
-            date: { $gte: thirtyDaysAgo },
-            status: 'hadir'
-          }
-        },
-        {
-          $group: {
-            _id: {
-              student: '$student',
-              date: {
-                $dateToString: {
-                  format: '%Y-%m-%d',
-                  date: '$date'
-                }
-              }
-            }
-          }
-        },
-        {
-          $group: {
-            _id: '$_id.student',
-            attendanceCount: { $sum: 1 }
+            role: 'siswa',
+            class: 'XI-2'
           }
         },
         {
           $lookup: {
-            from: 'users',
-            localField: '_id',
-            foreignField: '_id',
-            as: 'student'
+            from: 'attendances',
+            let: { studentId: '$_id' },
+            pipeline: [
+              {
+                $match: {
+                  $expr: {
+                    $and: [
+                      { $eq: ['$student', '$$studentId'] },
+                      { $gte: ['$date', thirtyDaysAgo] },
+                      { $eq: ['$status', 'hadir'] }
+                    ]
+                  }
+                }
+              },
+              {
+                $group: {
+                  _id: {
+                    $dateToString: {
+                      format: '%Y-%m-%d',
+                      date: '$date'
+                    }
+                  }
+                }
+              },
+              {
+                $count: 'uniqueDays'
+              }
+            ],
+            as: 'attendanceDays'
           }
         },
         {
-          $unwind: '$student'
+          $addFields: {
+            attendanceCount: {
+              $ifNull: [{ $size: '$attendanceDays' }, 0]
+            }
+          }
         },
         {
           $project: {
-            name: '$student.name',
+            name: 1,
             attendanceCount: 1,
             percentage: {
               $multiply: [
                 { $divide: ['$attendanceCount', 30] },
                 100
               ]
-            }
+            },
+            _id: 1  // Keep _id for filtering
           }
         },
         {
-          $sort: { attendanceCount: -1 }
+          $sort: { attendanceCount: -1, name: 1 }  // Desc by count, asc by name for ties
         }
       ])
 
-      const topPerformers = studentStats.slice(0, 3)
-      const bottomPerformers = studentStats.slice(-3).reverse()
+      const allStatsWithId = studentStats.map(({ _id, name, attendanceCount, percentage }) => ({ _id, name, attendanceCount, percentage }))
+
+      const topPerformersWithId = allStatsWithId.slice(0, 3)
+
+      // For bottom, exclude top performers and take lowest 3
+      const topIds = topPerformersWithId.map(p => p._id)
+      const nonTopStudents = allStatsWithId.filter(s => !topIds.includes(s._id))
+      const bottomPerformersWithId = nonTopStudents.slice(-3).reverse()
+
+      const topPerformers = topPerformersWithId.map(({ _id, ...rest }) => rest)
+      const bottomPerformers = bottomPerformersWithId.map(({ _id, ...rest }) => rest)
 
       trends = {
         last7Days: trendsData,
