@@ -24,12 +24,17 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
 
     const query: Record<string, unknown> = {}
+    let targetDate: Date;
     if (dateStr) {
-      const date = new Date(dateStr)
-      date.setHours(0, 0, 0, 0)
-      const nextDay = new Date(date)
-      nextDay.setDate(nextDay.getDate() + 1)
-      query.date = { $gte: date, $lt: nextDay }
+      targetDate = new Date(dateStr);
+    } else {
+      targetDate = new Date();
+    }
+    targetDate.setHours(0, 0, 0, 0);
+    if (!isStudent) {
+      const nextDay = new Date(targetDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+      query.date = { $gte: targetDate, $lt: nextDay };
     }
   
     if (isStudent) {
@@ -76,7 +81,7 @@ export async function GET(request: NextRequest) {
             email: student.email,
             class: student.class
           },
-          date: dateStr ? new Date(dateStr) : new Date(),
+          date: targetDate,
           status: 'alfa',
           timestamp: null
         }
