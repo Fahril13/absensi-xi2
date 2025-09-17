@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const stream = Readable.from(buffer)
     const results: Record<string, string>[] = []
 
-    return new Promise((resolve) => {
+    return new Promise<NextResponse>((resolve) => {
       stream
         .pipe(csv())
         .on('data', (data) => results.push(data))
@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
           resolve(NextResponse.json({ error: 'Failed to parse CSV' }, { status: 500 }))
         })
     })
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (_error: unknown) {
     return NextResponse.json({ error: 'Server error during import' }, { status: 500 })
   }
