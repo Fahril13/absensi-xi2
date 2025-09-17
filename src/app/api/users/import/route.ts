@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const stream = Readable.from(buffer)
-    const results: any[] = []
+    const results: Record<string, string>[] = []
 
     return new Promise((resolve) => {
       stream
@@ -72,8 +72,8 @@ export async function POST(req: NextRequest) {
               }
 
               successCount++
-            } catch (err: any) {
-              errors.push(`Error processing row ${JSON.stringify(row)}: ${err.message}`)
+            } catch (err: unknown) {
+              errors.push(`Error processing row ${JSON.stringify(row)}: ${(err as Error).message}`)
               errorCount++
             }
           }
@@ -88,11 +88,11 @@ export async function POST(req: NextRequest) {
 
           resolve(NextResponse.json(responseData, { status: 200 }))
         })
-        .on('error', (err) => {
+        .on('error', () => {
           resolve(NextResponse.json({ error: 'Failed to parse CSV' }, { status: 500 }))
         })
     })
-  } catch (error) {
+  } catch (_error: unknown) {
     return NextResponse.json({ error: 'Server error during import' }, { status: 500 })
   }
 }
