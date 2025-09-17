@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import { Toaster } from "react-hot-toast";
+import { motion } from 'framer-motion';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,7 +31,13 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <Providers>
-          {children}
+          <motion.main
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {children}
+          </motion.main>
           <Toaster
             position="top-right"
             toastOptions={{
